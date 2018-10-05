@@ -19,7 +19,7 @@ from modoboa.lib.fields import DomainNameField
 from modoboa.lib.form_utils import (
     DynamicForm, TabForms, WizardForm, WizardStep, YesNoField
 )
-from modoboa.lib.web_utils import render_to_json_response
+from modoboa.lib.web_utils import render_to_json_response, size2integer
 from modoboa.parameters import tools as param_tools
 from .. import constants, lib, signals
 from ..models import Alias, Domain, DomainAlias, Mailbox
@@ -41,6 +41,8 @@ class DomainFormGeneral(forms.ModelForm, DynamicForm):
     )
     dkim_key_selector = forms.CharField(
         label=ugettext_lazy("Key selector"), required=False)
+    quota = forms.CharField(
+        label=ugettext_lazy("Quota"), required=False)
 
     class Meta:
         model = Domain
@@ -93,6 +95,12 @@ class DomainFormGeneral(forms.ModelForm, DynamicForm):
                     _("No authorized MX record found for this domain"))
 
         return name
+
+    def clean_quota(self):
+        """Convert to proper unity """
+        quota = self.cleaned_data["quota"]
+        quota = size2integer(quota)
+        return quota
 
     def clean_enable_dkim(self):
         """Check prerequisites."""
